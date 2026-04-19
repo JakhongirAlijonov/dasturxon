@@ -3,10 +3,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Uzbek palette — we'll use these throughout
-        lapis: { DEFAULT: "#1A5276", light: "#2E86C1" },
-        gold: { DEFAULT: "#D4AC0D", light: "#F1C40F" },
-        cream: { DEFAULT: "#FDF6E3" },
+        lapis: { DEFAULT: "#1A3A5C", light: "#2E6DA4", dark: "#0F2236" },
+        gold: { DEFAULT: "#C9A84C", light: "#E8C96A", dark: "#9A7A2E" },
+        cream: { DEFAULT: "#FDF6E3", dark: "#F5E6C8" },
+        rust: { DEFAULT: "#8B3A2A" },
+      },
+      fontFamily: {
+        display: ["Playfair Display", "serif"],
+        body: ["Inter", "sans-serif"],
       },
     },
   },

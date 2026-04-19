@@ -1,0 +1,23 @@
+{
+  "menu": {
+    "search": "음식 검색...",
+    "all": "전체",
+    "empty": "음식을 찾을 수 없습니다",
+    "table": "테이블 번호",
+    "outOfStock": "품절",
+    "new": "신메뉴"
+  },
+  "auth": {
+    "email": "이메일",
+    "password": "비밀번호",
+    "signIn": "로그인",
+    "signingIn": "로그인 중...",
+    "error": "이메일 또는 비밀번호가 올바르지 않습니다"
+  },
+  "admin": {
+    "dashboard": "관리자 패널",
+    "dishes": "메뉴",
+    "categories": "카테고리",
+    "logout": "로그아웃"
+  }
+}

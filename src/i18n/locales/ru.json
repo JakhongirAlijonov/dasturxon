@@ -1,0 +1,23 @@
+{
+  "menu": {
+    "search": "Поиск блюд...",
+    "all": "Все",
+    "empty": "Блюда не найдены",
+    "table": "Стол №",
+    "outOfStock": "Нет в наличии",
+    "new": "НОВОЕ"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Пароль",
+    "signIn": "Войти",
+    "signingIn": "Вход...",
+    "error": "Неверный email или пароль"
+  },
+  "admin": {
+    "dashboard": "Панель управления",
+    "dishes": "Блюда",
+    "categories": "Категории",
+    "logout": "Выйти"
+  }
+}

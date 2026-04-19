@@ -1,0 +1,23 @@
+{
+  "menu": {
+    "search": "Taom qidirish...",
+    "all": "Barchasi",
+    "empty": "Taom topilmadi",
+    "table": "Stol №",
+    "outOfStock": "Tugagan",
+    "new": "YANGI"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Parol",
+    "signIn": "Kirish",
+    "signingIn": "Kirilmoqda...",
+    "error": "Email yoki parol noto'g'ri"
+  },
+  "admin": {
+    "dashboard": "Boshqaruv paneli",
+    "dishes": "Taomlar",
+    "categories": "Kategoriyalar",
+    "logout": "Chiqish"
+  }
+}
