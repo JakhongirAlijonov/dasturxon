@@ -7,8 +7,8 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../../firebase/config";
 import { Plus, ToggleLeft, ToggleRight } from "lucide-react";
+import { auth, secondaryAuth, db } from "../../firebase/config";
 
 export default function AdminsManager() {
   const [admins, setAdmins] = useState([]);
@@ -50,14 +50,13 @@ export default function AdminsManager() {
     setError("");
 
     try {
-      // create Firebase Auth user
+      // use secondary app — won't sign out super admin
       const cred = await createUserWithEmailAndPassword(
-        auth,
+        secondaryAuth,
         form.email,
         form.password,
       );
 
-      // save role in Firestore
       await setDoc(doc(db, "users", cred.user.uid), {
         email: form.email,
         role: "restaurant_admin",
@@ -65,6 +64,9 @@ export default function AdminsManager() {
         active: true,
         createdAt: new Date(),
       });
+
+      // sign out from secondary app immediately
+      await secondaryAuth.signOut();
 
       setForm({ email: "", password: "", restaurantId: "" });
       setShowForm(false);

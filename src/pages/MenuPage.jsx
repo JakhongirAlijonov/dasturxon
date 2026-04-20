@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
+import DishDetailModal from "../components/DishDetailModal";
 import {
   collection,
   query,
@@ -22,7 +23,7 @@ export default function MenuPage() {
   const table = searchParams.get("table");
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-
+  const [selectedDish, setSelectedDish] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
   const [dishes, setDishes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -145,9 +146,15 @@ export default function MenuPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 items-stretch">
             {filtered.map((dish) => (
-              <DishCard key={dish.id} dish={dish} />
+              <div
+                key={dish.id}
+                onClick={() => setSelectedDish(dish)}
+                className="cursor-pointer h-full"
+              >
+                <DishCard dish={dish} />
+              </div>
             ))}
           </div>
         )}
@@ -164,6 +171,13 @@ export default function MenuPage() {
           Dasturxon
         </p>
       </div>
+      {selectedDish && (
+        <DishDetailModal
+          dish={selectedDish}
+          restaurantId={restaurantId}
+          onClose={() => setSelectedDish(null)}
+        />
+      )}
     </div>
   );
 }
