@@ -18,14 +18,19 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // fetch role from Firestore
-        const snap = await getDoc(doc(db, "users", firebaseUser.uid));
-        if (snap.exists()) {
-          const data = snap.data();
-          setRole(data.role);
-          setRestaurantId(data.restaurantId || null);
+        try {
+          const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+          if (snap.exists()) {
+            const data = snap.data();
+            setRole(data.role);
+            setRestaurantId(data.restaurantId || null);
+          }
+          setUser(firebaseUser);
+        } catch (err) {
+          console.error("Role fetch error:", err);
+          // still set user even if role fetch fails
+          setUser(firebaseUser);
         }
-        setUser(firebaseUser);
       } else {
         setUser(null);
         setRole(null);

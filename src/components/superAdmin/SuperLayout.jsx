@@ -12,11 +12,11 @@ export default function SuperLayout({ children, activePage, onNavigate }) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-20 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-20"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -27,21 +27,28 @@ export default function SuperLayout({ children, activePage, onNavigate }) {
         fixed top-0 left-0 h-full w-60 bg-gray-900 z-30 flex flex-col
         transform transition-transform duration-300
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0 lg:static lg:z-auto
       `}
       >
         {/* Logo */}
         <div className="px-5 py-6 border-b border-gray-800">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Shield size={18} className="text-gray-900" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-yellow-400 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Shield size={18} className="text-gray-900" />
+              </div>
+              <div>
+                <p className="text-white font-bold text-sm">Super Admin</p>
+                <p className="text-gray-400 text-xs truncate max-w-28">
+                  {user?.email}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-white font-bold text-sm">Super Admin</p>
-              <p className="text-gray-500 text-xs truncate max-w-32">
-                {user?.email}
-              </p>
-            </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="text-gray-400 hover:text-white transition"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
@@ -80,9 +87,9 @@ export default function SuperLayout({ children, activePage, onNavigate }) {
       </aside>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile topbar */}
-        <header className="bg-white border-b px-4 py-3 flex items-center justify-between lg:hidden">
+      <div className="flex flex-col min-h-screen">
+        {/* Top bar */}
+        <header className="bg-white border-b px-4 py-3 flex items-center justify-between sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -90,8 +97,8 @@ export default function SuperLayout({ children, activePage, onNavigate }) {
             >
               <Menu size={20} className="text-gray-600" />
             </button>
-            <span className="font-semibold text-gray-800 text-sm">
-              Super Admin
+            <span className="font-semibold text-gray-800 text-sm capitalize">
+              {activePage}
             </span>
           </div>
           <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">
@@ -99,12 +106,7 @@ export default function SuperLayout({ children, activePage, onNavigate }) {
           </div>
         </header>
 
-        {/* Page title bar — desktop */}
-        <div className="hidden lg:flex items-center px-8 py-4 bg-white border-b">
-          <h1 className="font-bold text-gray-800 capitalize">{activePage}</h1>
-        </div>
-
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 overflow-auto">{children}</main>
       </div>
     </div>
   );
