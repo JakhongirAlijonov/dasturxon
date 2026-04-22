@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { X, Download, Printer } from "lucide-react";
+
 export default function QRModal({ restaurant, onClose }) {
   const qrRef = useRef();
   const [tableNumber, setTableNumber] = useState("");
@@ -10,49 +11,147 @@ export default function QRModal({ restaurant, onClose }) {
     ? `${window.location.origin}/menu/${restaurant.id}?table=${tableNumber}`
     : menuUrl;
 
-  function downloadQR() {
+  function generateCanvas(callback) {
+    const canvas = document.createElement("canvas");
+    const width = 400;
+    const height = tableNumber ? 560 : 520;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+
+    // background
+    ctx.fillStyle = "#0F2236";
+    ctx.fillRect(0, 0, width, height);
+
+    // gold top border
+    ctx.fillStyle = "#C9A84C";
+    ctx.fillRect(0, 0, width, 6);
+
+    // gold bottom border
+    ctx.fillStyle = "#C9A84C";
+    ctx.fillRect(0, height - 6, width, 6);
+
+    // decorative corner dots
+    const dots = [
+      [20, 20],
+      [width - 20, 20],
+      [20, height - 20],
+      [width - 20, height - 20],
+    ];
+    dots.forEach(([x, y]) => {
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#C9A84C";
+      ctx.fill();
+    });
+
+    // restaurant name
+    ctx.fillStyle = "#C9A84C";
+    ctx.font = "bold 28px serif";
+    ctx.textAlign = "center";
+    ctx.fillText(restaurant.name, width / 2, 60);
+
+    // thin gold divider line
+    ctx.strokeStyle = "#C9A84C";
+    ctx.globalAlpha = 0.4;
+    ctx.beginPath();
+    ctx.moveTo(40, 75);
+    ctx.lineTo(width - 40, 75);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // QR code from SVG
     const svg = qrRef.current.querySelector("svg");
     const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    canvas.width = 400;
-    canvas.height = 400;
-    const ctx = canvas.getContext("2d");
     const img = new Image();
     img.onload = () => {
+      // white background behind QR
       ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 400, 400);
-      ctx.drawImage(img, 0, 0, 400, 400);
+      ctx.roundRect(75, 90, 250, 250, 12);
+      ctx.fill();
+
+      // draw QR
+      ctx.drawImage(img, 85, 100, 230, 230);
+
+      // scan me text
+      ctx.fillStyle = "#E8C96A";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("📷  SCAN ME", width / 2, 370);
+
+      // menu url small text
+      ctx.fillStyle = "#C9A84C";
+      ctx.globalAlpha = 0.6;
+      ctx.font = "11px sans-serif";
+      ctx.fillText(menuUrl, width / 2, 395);
+      ctx.globalAlpha = 1;
+
+      // table number if present
+      if (tableNumber) {
+        ctx.fillStyle = "#C9A84C";
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.moveTo(40, 415);
+        ctx.lineTo(width - 40, 415);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("Table Number", width / 2, 445);
+
+        ctx.fillStyle = "#C9A84C";
+        ctx.font = "bold 36px serif";
+        ctx.fillText(`№ ${tableNumber}`, width / 2, 490);
+      }
+
+      // bottom tagline
+      ctx.fillStyle = "#C9A84C";
+      ctx.globalAlpha = 0.5;
+      ctx.font = "11px sans-serif";
+      ctx.fillText(
+        "Dasturxon • Digital Menu",
+        width / 2,
+        tableNumber ? 535 : 490,
+      );
+      ctx.globalAlpha = 1;
+
+      callback(canvas);
+    };
+    img.src =
+      "data:image/svg+xml;base64," +
+      btoa(unescape(encodeURIComponent(svgData)));
+  }
+
+  function downloadQR() {
+    generateCanvas((canvas) => {
       const a = document.createElement("a");
-      a.download = `qr-${restaurant.name}.png`;
+      a.download = `qr-${restaurant.name}${tableNumber ? `-table${tableNumber}` : ""}.png`;
       a.href = canvas.toDataURL("image/png");
       a.click();
-    };
-    img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    });
   }
 
   function printQR() {
-    const svg = qrRef.current.querySelector("svg");
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const win = window.open("", "_blank");
-    win.document.write(`
-      <html>
-        <head>
-          <title>QR - ${restaurant.name}</title>
-          <style>
-            body { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; font-family: sans-serif; }
-            h2 { margin-bottom: 16px; }
-            p { margin-top: 12px; color: #666; font-size: 14px; }
-          </style>
-        </head>
-        <body>
-          <h2>${restaurant.name}</h2>
-          ${svgData}
-          <p>${tableUrl}</p>
-        </body>
-      </html>
-    `);
-    win.document.close();
-    win.print();
+    generateCanvas((canvas) => {
+      const win = window.open("", "_blank");
+      win.document.write(`
+        <html>
+          <head>
+            <title>QR - ${restaurant.name}</title>
+            <style>
+              body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f5f5f5; }
+              img { max-width: 400px; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+            </style>
+          </head>
+          <body>
+            <img src="${canvas.toDataURL("image/png")}" />
+          </body>
+        </html>
+      `);
+      win.document.close();
+      win.print();
+    });
   }
 
   return (
@@ -69,38 +168,69 @@ export default function QRModal({ restaurant, onClose }) {
           </button>
         </div>
 
-        {/* QR */}
+        {/* Preview card */}
         <div className="p-6 flex flex-col items-center gap-4">
-          <p className="font-semibold text-gray-800">{restaurant.name}</p>
+          {/* Styled preview */}
+          <div className="bg-lapis-dark rounded-2xl p-5 w-full flex flex-col items-center gap-3 border-2 border-gold/30">
+            {/* Gold top line */}
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
 
-          <div
-            ref={qrRef}
-            className="p-4 bg-white border-2 border-gray-100 rounded-2xl"
-          >
-            <QRCodeSVG
-              value={tableUrl}
-              size={220}
-              bgColor="#ffffff"
-              fgColor="#1e3a5f"
-              level="H"
-              includeMargin={false}
-            />
+            {/* Restaurant name */}
+            <p className="font-display font-bold text-gold-light text-xl tracking-wide">
+              {restaurant.name}
+            </p>
+
+            {/* QR */}
+            <div ref={qrRef} className="bg-white p-3 rounded-xl">
+              <QRCodeSVG
+                value={tableUrl}
+                size={180}
+                bgColor="#ffffff"
+                fgColor="#0F2236"
+                level="H"
+                includeMargin={false}
+              />
+            </div>
+
+            {/* Scan me */}
+            <p className="text-gold-light text-sm font-semibold tracking-widest">
+              📷 SCAN ME
+            </p>
+
+            {/* URL */}
+            <p className="text-gold/50 text-xs text-center break-all px-2">
+              {menuUrl}
+            </p>
+
+            {/* Table number */}
+            {tableNumber && (
+              <>
+                <div className="w-full h-px bg-gold/20" />
+                <div className="text-center">
+                  <p className="text-white/50 text-xs tracking-widest uppercase">
+                    Table Number
+                  </p>
+                  <p className="text-gold font-display font-bold text-3xl">
+                    № {tableNumber}
+                  </p>
+                </div>
+              </>
+            )}
+
+            {/* Gold bottom line */}
+            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
           </div>
 
-          <p className="text-xs text-gray-400 text-center break-all px-2">
-            {tableUrl}
-          </p>
-
-          {/* Per-table input */}
-          <div className="w-full space-y-2 border-t pt-4">
+          {/* Table input */}
+          <div className="w-full space-y-2">
             <p className="text-xs font-medium text-gray-600 text-center">
-              Generate per-table QR (optional)
+              Add table number (optional)
             </p>
             <input
               type="number"
               value={tableNumber}
               onChange={(e) => setTableNumber(e.target.value)}
-              placeholder="Table number e.g. 5"
+              placeholder="e.g. 5"
               className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 text-center"
             />
           </div>

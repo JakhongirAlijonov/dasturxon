@@ -58,7 +58,8 @@ export default function MenuPage() {
     }
   }
 
-  const filtered = dishes.filter((dish) => {
+  const filtered = dishes
+  .filter((dish) => {
     const matchCat =
       activeCategory === "all" || dish.category === activeCategory;
     const matchSearch =
@@ -66,6 +67,11 @@ export default function MenuPage() {
       dish.name?.ru?.toLowerCase().includes(search.toLowerCase()) ||
       dish.name?.ko?.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
+  })
+  .sort((a, b) => {
+    if (a.isPopular && !b.isPopular) return -1;
+    if (!a.isPopular && b.isPopular) return 1;
+    return 0;
   });
 
   if (loading) return <MenuSkeleton />;

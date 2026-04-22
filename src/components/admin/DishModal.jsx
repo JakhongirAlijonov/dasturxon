@@ -184,25 +184,21 @@ export default function DishModal({ dish, restaurantId, onClose }) {
           {/* Toggles */}
           <div className="flex flex-wrap gap-4">
             {[
-              { key: "inStock", label: "In Stock" },
-              { key: "isNew", label: "New Badge" },
-              { key: "isArchived", label: "Archived" },
-            ].map(({ key, label }) => (
-              <label
-                key={key}
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={form[key]}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, [key]: e.target.checked }))
-                  }
-                  className="w-4 h-4 accent-blue-900"
-                />
-                <span className="text-sm text-gray-700">{label}</span>
-              </label>
-            ))}
+  { key: "inStock",    label: "In Stock" },
+  { key: "isNew",      label: "New Badge" },
+  { key: "isPopular",  label: "Popular Badge" },
+  { key: "isArchived", label: "Archived" },
+].map(({ key, label }) => (
+  <label key={key} className="flex items-center gap-2 cursor-pointer">
+    <input
+      type="checkbox"
+      checked={form[key] || false}
+      onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
+      className="w-4 h-4 accent-blue-900"
+    />
+    <span className="text-sm text-gray-700">{label}</span>
+  </label>
+))}
           </div>
         </div>
 

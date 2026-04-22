@@ -27,17 +27,22 @@ export default function DishCard({ dish }) {
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {dish.isNew && (
-            <span className="bg-gold text-lapis-dark text-xs font-bold px-2 py-0.5 rounded-full">
-              {t("menu.new")}
-            </span>
-          )}
-          {!dish.inStock && (
-            <span className="bg-rust text-white text-xs font-bold px-2 py-0.5 rounded-full">
-              {t("menu.outOfStock")}
-            </span>
-          )}
-        </div>
+  {dish.isPopular && (
+  <span className="bg-orange-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+    🔥 {t("menu.popular")}
+  </span>
+)}
+  {dish.isNew && (
+    <span className="bg-gold text-lapis-dark text-xs font-bold px-2 py-0.5 rounded-full">
+      {t("menu.new")}
+    </span>
+  )}
+  {!dish.inStock && (
+    <span className="bg-rust text-white text-xs font-bold px-2 py-0.5 rounded-full">
+      {t("menu.outOfStock")}
+    </span>
+  )}
+</div>
 
         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-gold/40 to-transparent" />
       </div>

@@ -5,7 +5,8 @@
     "empty": "Taom topilmadi",
     "table": "Stol №",
     "outOfStock": "Tugagan",
-    "new": "YANGI"
+    "new": "YANGI",
+    "popular": "Mashhur"
   },
   "auth": {
     "email": "Email",

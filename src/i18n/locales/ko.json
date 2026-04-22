@@ -5,7 +5,8 @@
     "empty": "음식을 찾을 수 없습니다",
     "table": "테이블 번호",
     "outOfStock": "품절",
-    "new": "신메뉴"
+    "new": "신메뉴",
+    "popular": "인기"
   },
   "auth": {
     "email": "이메일",
