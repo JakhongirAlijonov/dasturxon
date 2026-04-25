@@ -197,11 +197,6 @@ export default function QRModal({ restaurant, onClose }) {
               📷 SCAN ME
             </p>
 
-            {/* URL */}
-            <p className="text-gold/50 text-xs text-center break-all px-2">
-              {menuUrl}
-            </p>
-
             {/* Table number */}
             {tableNumber && (
               <>

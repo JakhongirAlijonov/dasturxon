@@ -47,6 +47,30 @@ export default function DishModal({ dish, restaurantId, onClose }) {
   }
 
   async function handleSave() {
+    // validate all language fields
+    const missingFields = [];
+
+    if (!form.name.uz || !form.name.ru || !form.name.ko) {
+      missingFields.push("Name in all 3 languages");
+    }
+    if (!form.description.uz || !form.description.ru || !form.description.ko) {
+      missingFields.push("Description in all 3 languages");
+    }
+    if (!form.price) {
+      missingFields.push("Price");
+    }
+    if (!form.category) {
+      missingFields.push("Category");
+    }
+    if (!form.imageUrl) {
+      missingFields.push("Image");
+    }
+
+    if (missingFields.length > 0) {
+      alert(`Please fill in the following:\n\n• ${missingFields.join("\n• ")}`);
+      return;
+    }
+
     setSaving(true);
     try {
       const data = {
@@ -184,24 +208,51 @@ export default function DishModal({ dish, restaurantId, onClose }) {
           {/* Toggles */}
           <div className="flex flex-wrap gap-4">
             {[
-  { key: "inStock",    label: "In Stock" },
-  { key: "isNew",      label: "New Badge" },
-  { key: "isPopular",  label: "Popular Badge" },
-  { key: "isArchived", label: "Archived" },
-].map(({ key, label }) => (
-  <label key={key} className="flex items-center gap-2 cursor-pointer">
-    <input
-      type="checkbox"
-      checked={form[key] || false}
-      onChange={e => setForm(f => ({ ...f, [key]: e.target.checked }))}
-      className="w-4 h-4 accent-blue-900"
-    />
-    <span className="text-sm text-gray-700">{label}</span>
-  </label>
-))}
+              { key: "inStock", label: "In Stock" },
+              { key: "isNew", label: "New Badge" },
+              { key: "isPopular", label: "Popular Badge" },
+              { key: "isArchived", label: "Archived" },
+            ].map(({ key, label }) => (
+              <label
+                key={key}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <input
+                  type="checkbox"
+                  checked={form[key] || false}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, [key]: e.target.checked }))
+                  }
+                  className="w-4 h-4 accent-blue-900"
+                />
+                <span className="text-sm text-gray-700">{label}</span>
+              </label>
+            ))}
           </div>
         </div>
 
+        <div className="flex gap-2">
+          {LANGS.map((l) => {
+            const incomplete = !form.name[l] || !form.description[l];
+            return (
+              <button
+                key={l}
+                onClick={() => setActiveLang(l)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition relative
+          ${
+            activeLang === l
+              ? "bg-blue-900 text-yellow-400"
+              : "bg-gray-100 text-gray-600"
+          }`}
+              >
+                {LANG_LABELS[l]}
+                {incomplete && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
         {/* Footer */}
         <div className="p-5 border-t flex gap-3">
           <button

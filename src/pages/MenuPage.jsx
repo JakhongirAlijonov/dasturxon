@@ -34,11 +34,21 @@ export default function MenuPage() {
   useEffect(() => {
     fetchMenuData();
   }, [restaurantId]);
-
   async function fetchMenuData() {
     try {
       const restSnap = await getDoc(doc(db, "restaurants", restaurantId));
-      if (restSnap.exists()) setRestaurant(restSnap.data());
+      if (restSnap.exists()) {
+        const data = restSnap.data();
+
+        // block inactive restaurants
+        if (data.active === false) {
+          setRestaurant(null);
+          setLoading(false);
+          return;
+        }
+
+        setRestaurant(data);
+      }
 
       const catSnap = await getDocs(
         collection(db, "restaurants", restaurantId, "categories"),
@@ -59,23 +69,35 @@ export default function MenuPage() {
   }
 
   const filtered = dishes
-  .filter((dish) => {
-    const matchCat =
-      activeCategory === "all" || dish.category === activeCategory;
-    const matchSearch =
-      dish.name?.uz?.toLowerCase().includes(search.toLowerCase()) ||
-      dish.name?.ru?.toLowerCase().includes(search.toLowerCase()) ||
-      dish.name?.ko?.toLowerCase().includes(search.toLowerCase());
-    return matchCat && matchSearch;
-  })
-  .sort((a, b) => {
-    if (a.isPopular && !b.isPopular) return -1;
-    if (!a.isPopular && b.isPopular) return 1;
-    return 0;
-  });
+    .filter((dish) => {
+      const matchCat =
+        activeCategory === "all" || dish.category === activeCategory;
+      const matchSearch =
+        dish.name?.uz?.toLowerCase().includes(search.toLowerCase()) ||
+        dish.name?.ru?.toLowerCase().includes(search.toLowerCase()) ||
+        dish.name?.ko?.toLowerCase().includes(search.toLowerCase());
+      return matchCat && matchSearch;
+    })
+    .sort((a, b) => {
+      if (a.isPopular && !b.isPopular) return -1;
+      if (!a.isPopular && b.isPopular) return 1;
+      return 0;
+    });
 
   if (loading) return <MenuSkeleton />;
 
+  if (!restaurant)
+    return (
+      <div className="min-h-screen bg-lapis-dark flex flex-col items-center justify-center px-6 text-center">
+        <div className="text-6xl mb-6">🔒</div>
+        <h1 className="font-display text-2xl font-bold text-gold mb-3">
+          Restaurant Closed
+        </h1>
+        <p className="text-gold/50 text-sm">
+          This restaurant is currently unavailable. Please try again later.
+        </p>
+      </div>
+    );
   return (
     <div className="min-h-screen bg-cream font-body">
       {/* Hero Header */}
