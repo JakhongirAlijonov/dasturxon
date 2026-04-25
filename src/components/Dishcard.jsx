@@ -17,6 +17,7 @@ export default function DishCard({ dish }) {
             alt={name}
             loading="lazy"
             decoding="async"
+            fetchPriority="low"
             className="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

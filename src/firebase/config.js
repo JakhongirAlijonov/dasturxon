@@ -13,8 +13,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
-// Secondary app for creating users without signing out super admin
 const secondaryApp = initializeApp(firebaseConfig, "secondary");
 
 export const auth = getAuth(app);
