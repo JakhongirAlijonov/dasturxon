@@ -74,18 +74,6 @@ export default defineConfig({
     }),
   ],
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          "firebase-app": ["firebase/app"],
-          "firebase-auth": ["firebase/auth"],
-          "firebase-firestore": ["firebase/firestore"],
-          "firebase-storage": ["firebase/storage"],
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          i18n: ["react-i18next", "i18next"],
-        },
-      },
-    },
     chunkSizeWarningLimit: 600,
   },
 });
