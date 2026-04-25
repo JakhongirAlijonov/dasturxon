@@ -23,6 +23,9 @@ export default function RestaurantsManager() {
     address: "",
     ownerName: "",
     ownerPhone: "",
+    instagram: "",
+    telegram: "",
+    phone: "",
   });
 
   useEffect(() => {
@@ -44,8 +47,21 @@ export default function RestaurantsManager() {
       address: form.address,
       ownerName: form.ownerName,
       ownerPhone: form.ownerPhone,
+      instagram: form.instagram,
+      telegram: form.telegram,
+      phone: form.phone,
       active: true,
       createdAt: new Date(),
+    });
+
+    setForm({
+      name: "",
+      address: "",
+      ownerName: "",
+      ownerPhone: "",
+      instagram: "",
+      telegram: "",
+      phone: "",
     });
     setForm({ name: "", address: "", ownerName: "", ownerPhone: "" });
     setShowForm(false);
@@ -112,6 +128,38 @@ export default function RestaurantsManager() {
               setForm((f) => ({ ...f, ownerPhone: e.target.value }))
             }
             placeholder="Owner phone number"
+            className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+          />
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+              @
+            </span>
+            <input
+              value={form.instagram}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, instagram: e.target.value }))
+              }
+              placeholder="Instagram username"
+              className="w-full border border-gray-300 rounded-xl pl-7 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            />
+          </div>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+              @
+            </span>
+            <input
+              value={form.telegram}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, telegram: e.target.value }))
+              }
+              placeholder="Telegram username"
+              className="w-full border border-gray-300 rounded-xl pl-7 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
+            />
+          </div>
+          <input
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            placeholder="Phone number e.g. +82 10 1234 5678"
             className="w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-400"
           />
           <button

@@ -12,112 +12,130 @@ export default function QRModal({ restaurant, onClose }) {
     : menuUrl;
 
   function generateCanvas(callback) {
+    const W = 420;
+    const H = 620;
     const canvas = document.createElement("canvas");
-    const width = 400;
-    const height = tableNumber ? 560 : 520;
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = W;
+    canvas.height = H;
     const ctx = canvas.getContext("2d");
 
-    // background
+    // --- background ---
     ctx.fillStyle = "#0F2236";
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, W, H);
 
-    // gold top border
-    ctx.fillStyle = "#C9A84C";
-    ctx.fillRect(0, 0, width, 6);
+    // --- gold border frame ---
+    ctx.strokeStyle = "#C9A84C";
+    ctx.lineWidth = 3;
+    ctx.strokeRect(12, 12, W - 24, H - 24);
 
-    // gold bottom border
-    ctx.fillStyle = "#C9A84C";
-    ctx.fillRect(0, height - 6, width, 6);
-
-    // decorative corner dots
-    const dots = [
-      [20, 20],
-      [width - 20, 20],
-      [20, height - 20],
-      [width - 20, height - 20],
+    // --- corner ornaments ---
+    const corners = [
+      [12, 12],
+      [W - 12, 12],
+      [12, H - 12],
+      [W - 12, H - 12],
     ];
-    dots.forEach(([x, y]) => {
+    corners.forEach(([x, y]) => {
       ctx.beginPath();
-      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
       ctx.fillStyle = "#C9A84C";
       ctx.fill();
     });
 
-    // restaurant name
-    ctx.fillStyle = "#C9A84C";
-    ctx.font = "bold 28px serif";
+    // --- restaurant name ---
+    ctx.fillStyle = "#E8C96A";
+    ctx.font = "bold 32px serif";
     ctx.textAlign = "center";
-    ctx.fillText(restaurant.name, width / 2, 60);
+    ctx.fillText(restaurant.name, W / 2, 70);
 
-    // thin gold divider line
+    // --- "MENU" label ---
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "13px sans-serif";
+    ctx.letterSpacing = "6px";
+    ctx.fillText("M E N U", W / 2, 100);
+
+    // --- gold divider ---
     ctx.strokeStyle = "#C9A84C";
     ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(40, 75);
-    ctx.lineTo(width - 40, 75);
+    ctx.moveTo(50, 115);
+    ctx.lineTo(W - 50, 115);
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // QR code from SVG
+    // --- QR code ---
     const svg = qrRef.current.querySelector("svg");
     const svgData = new XMLSerializer().serializeToString(svg);
     const img = new Image();
+
     img.onload = () => {
-      // white background behind QR
+      // white rounded bg behind QR
       ctx.fillStyle = "#ffffff";
-      ctx.roundRect(75, 90, 250, 250, 12);
+      ctx.beginPath();
+      ctx.roundRect(85, 125, 250, 250, 16);
       ctx.fill();
 
-      // draw QR
-      ctx.drawImage(img, 85, 100, 230, 230);
+      ctx.drawImage(img, 95, 135, 230, 230);
 
-      // scan me text
+      // --- scan me ---
       ctx.fillStyle = "#E8C96A";
-      ctx.font = "bold 16px sans-serif";
+      ctx.font = "bold 15px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("📷  SCAN ME", width / 2, 370);
+      ctx.fillText("📷  SCAN TO VIEW MENU", W / 2, 405);
 
-      // menu url small text
-      ctx.fillStyle = "#C9A84C";
-      ctx.globalAlpha = 0.6;
-      ctx.font = "11px sans-serif";
-      ctx.fillText(menuUrl, width / 2, 395);
-      ctx.globalAlpha = 1;
-
-      // table number if present
+      // --- table number ---
       if (tableNumber) {
-        ctx.fillStyle = "#C9A84C";
-        ctx.globalAlpha = 0.4;
-        ctx.beginPath();
-        ctx.moveTo(40, 415);
-        ctx.lineTo(width - 40, 415);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-
         ctx.fillStyle = "#ffffff";
-        ctx.font = "14px sans-serif";
-        ctx.fillText("Table Number", width / 2, 445);
-
-        ctx.fillStyle = "#C9A84C";
-        ctx.font = "bold 36px serif";
-        ctx.fillText(`№ ${tableNumber}`, width / 2, 490);
+        ctx.font = "12px sans-serif";
+        ctx.fillText("Table Number", W / 2, 435);
+        ctx.fillStyle = "#E8C96A";
+        ctx.font = "bold 34px serif";
+        ctx.fillText(`№ ${tableNumber}`, W / 2, 475);
       }
 
-      // bottom tagline
+      // --- divider before social ---
+      const dividerY = tableNumber ? 500 : 430;
+      ctx.strokeStyle = "#C9A84C";
+      ctx.globalAlpha = 0.3;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(50, dividerY);
+      ctx.lineTo(W - 50, dividerY);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // --- social media ---
+      let socialY = dividerY + 35;
+      ctx.font = "13px sans-serif";
+      ctx.textAlign = "center";
+
+      if (restaurant.instagram) {
+        ctx.fillStyle = "#E8C96A";
+        ctx.fillText(`📸  @${restaurant.instagram}`, W / 2, socialY);
+        socialY += 28;
+      }
+      if (restaurant.telegram) {
+        ctx.fillStyle = "#E8C96A";
+        ctx.fillText(`✈️  @${restaurant.telegram}`, W / 2, socialY);
+        socialY += 28;
+      }
+      if (restaurant.phone) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(`📞  ${restaurant.phone}`, W / 2, socialY);
+        socialY += 28;
+      }
+
+      // --- bottom tagline ---
       ctx.fillStyle = "#C9A84C";
-      ctx.globalAlpha = 0.5;
-      ctx.font = "11px sans-serif";
-      ctx.fillText(
-        "Dasturxon • Digital Menu",
-        width / 2,
-        tableNumber ? 535 : 490,
-      );
+      ctx.globalAlpha = 0.4;
+      ctx.font = "10px sans-serif";
+      ctx.fillText("Powered by Dasturxon", W / 2, H - 22);
       ctx.globalAlpha = 1;
 
       callback(canvas);
     };
+
     img.src =
       "data:image/svg+xml;base64," +
       btoa(unescape(encodeURIComponent(svgData)));
@@ -140,13 +158,11 @@ export default function QRModal({ restaurant, onClose }) {
           <head>
             <title>QR - ${restaurant.name}</title>
             <style>
-              body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #f5f5f5; }
-              img { max-width: 400px; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+              body { margin:0; display:flex; align-items:center; justify-content:center; min-height:100vh; background:#f5f5f5; }
+              img  { max-width:420px; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,0.2); }
             </style>
           </head>
-          <body>
-            <img src="${canvas.toDataURL("image/png")}" />
-          </body>
+          <body><img src="${canvas.toDataURL("image/png")}" /></body>
         </html>
       `);
       win.document.close();
@@ -156,7 +172,7 @@ export default function QRModal({ restaurant, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-sm">
+      <div className="bg-white rounded-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b">
           <h3 className="font-bold text-gray-800">QR Code</h3>
@@ -168,17 +184,23 @@ export default function QRModal({ restaurant, onClose }) {
           </button>
         </div>
 
-        {/* Preview card */}
-        <div className="p-6 flex flex-col items-center gap-4">
-          {/* Styled preview */}
-          <div className="bg-lapis-dark rounded-2xl p-5 w-full flex flex-col items-center gap-3 border-2 border-gold/30">
-            {/* Gold top line */}
-            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
+        <div className="p-5 flex flex-col items-center gap-4">
+          {/* Preview */}
+          <div className="bg-lapis-dark rounded-2xl p-5 w-full flex flex-col items-center gap-3 border-2 border-gold/40">
+            {/* Gold border line */}
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-gold to-transparent" />
 
             {/* Restaurant name */}
-            <p className="font-display font-bold text-gold-light text-xl tracking-wide">
+            <p className="font-display font-bold text-gold-light text-2xl tracking-wide text-center">
               {restaurant.name}
             </p>
+
+            {/* Menu label */}
+            <p className="text-white/60 text-xs tracking-[6px] uppercase">
+              Menu
+            </p>
+
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
 
             {/* QR */}
             <div ref={qrRef} className="bg-white p-3 rounded-xl">
@@ -193,27 +215,49 @@ export default function QRModal({ restaurant, onClose }) {
             </div>
 
             {/* Scan me */}
-            <p className="text-gold-light text-sm font-semibold tracking-widest">
-              📷 SCAN ME
+            <p className="text-gold-light text-xs font-semibold tracking-widest">
+              📷 SCAN TO VIEW MENU
             </p>
 
             {/* Table number */}
             {tableNumber && (
-              <>
-                <div className="w-full h-px bg-gold/20" />
-                <div className="text-center">
-                  <p className="text-white/50 text-xs tracking-widest uppercase">
-                    Table Number
-                  </p>
-                  <p className="text-gold font-display font-bold text-3xl">
-                    № {tableNumber}
-                  </p>
-                </div>
-              </>
+              <div className="text-center">
+                <p className="text-white/40 text-xs tracking-widest uppercase">
+                  Table Number
+                </p>
+                <p className="text-gold font-display font-bold text-3xl">
+                  № {tableNumber}
+                </p>
+              </div>
             )}
 
-            {/* Gold bottom line */}
-            <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-gold to-transparent" />
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+
+            {/* Social */}
+            <div className="flex flex-col items-center gap-1.5 w-full">
+              {restaurant.instagram && (
+                <p className="text-gold-light text-xs">
+                  📸 @{restaurant.instagram}
+                </p>
+              )}
+              {restaurant.telegram && (
+                <p className="text-gold-light text-xs">
+                  ✈️ @{restaurant.telegram}
+                </p>
+              )}
+              {restaurant.phone && (
+                <p className="text-white/70 text-xs">📞 {restaurant.phone}</p>
+              )}
+              {!restaurant.instagram &&
+                !restaurant.telegram &&
+                !restaurant.phone && (
+                  <p className="text-white/30 text-xs italic">
+                    No social media added
+                  </p>
+                )}
+            </div>
+
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-gold to-transparent" />
           </div>
 
           {/* Table input */}
