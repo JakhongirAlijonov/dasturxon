@@ -5,6 +5,7 @@ import {
   doc,
   deleteDoc,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { useAuth } from "../../context/AuthContext";
@@ -21,6 +22,7 @@ export default function DishesManager() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [deletingDishId, setDeletingDishId] = useState(null);
 
   useEffect(() => {
     fetchDishes();
@@ -50,9 +52,25 @@ export default function DishesManager() {
   }
 
   async function deleteDish(dish) {
-    if (!confirm("Delete this dish?")) return;
-    await deleteDoc(doc(db, "restaurants", restaurantId, "dishes", dish.id));
-    fetchDishes();
+    if (!window.confirm("Delete this dish and its reviews? This cannot be undone.")) return;
+    setDeletingDishId(dish.id);
+    try {
+      const reviews = await getDocs(
+        collection(db, "restaurants", restaurantId, "dishes", dish.id, "reviews"),
+      );
+      for (let i = 0; i < reviews.docs.length; i += 450) {
+        const batch = writeBatch(db);
+        reviews.docs.slice(i, i + 450).forEach((review) => batch.delete(review.ref));
+        await batch.commit();
+      }
+      await deleteDoc(doc(db, "restaurants", restaurantId, "dishes", dish.id));
+      setDishes((current) => current.filter((item) => item.id !== dish.id));
+    } catch (error) {
+      console.error("Failed to delete dish:", error);
+      window.alert("Could not delete this dish. Check your Firestore permissions and try again.");
+    } finally {
+      setDeletingDishId(null);
+    }
   }
 
   function openAdd() {
@@ -160,10 +178,12 @@ export default function DishesManager() {
                   </button>
                   <button
                     onClick={() => deleteDish(dish)}
-                    title="Delete"
-                    className="p-2 rounded-lg hover:bg-gray-100 text-red-500 transition"
+                    disabled={deletingDishId === dish.id}
+                    title="Delete dish and its reviews"
+                    className="flex items-center gap-1.5 px-2.5 py-2 rounded-lg hover:bg-red-50 text-red-600 transition disabled:opacity-50 text-sm font-medium"
                   >
                     <Trash2 size={16} />
+                    {deletingDishId === dish.id ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </div>

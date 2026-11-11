@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import DishDetailModal from "../components/DishDetailModal";
 import {
@@ -10,6 +10,7 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
+import { recordDishOpen, recordMenuOpen } from "../firebase/analytics";
 import { useTranslation } from "react-i18next";
 import DishCard from "../components/DishCard";
 import CategoryFilter from "../components/CategoryFilter";
@@ -21,20 +22,38 @@ export default function MenuPage() {
   const { restaurantId } = useParams();
   const [searchParams] = useSearchParams();
   const table = searchParams.get("table");
+  const source = searchParams.get("source");
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [selectedDish, setSelectedDish] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
+  const [loadedRestaurantId, setLoadedRestaurantId] = useState(null);
   const [dishes, setDishes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const trackedMenuOpen = useRef(null);
 
   useEffect(() => {
     fetchMenuData();
   }, [restaurantId]);
+
+  useEffect(() => {
+    if (!restaurant || loadedRestaurantId !== restaurantId) return;
+    const visitKey = `${restaurantId}:${table || ""}:${source || ""}`;
+    if (trackedMenuOpen.current === visitKey) return;
+    trackedMenuOpen.current = visitKey;
+    void recordMenuOpen(restaurantId, {
+      tableNumber: table,
+      source,
+    });
+  }, [restaurant, loadedRestaurantId, restaurantId, table, source]);
+
   async function fetchMenuData() {
+    setLoading(true);
+    setRestaurant(null);
+    setLoadedRestaurantId(null);
     try {
       const restSnap = await getDoc(doc(db, "restaurants", restaurantId));
       if (restSnap.exists()) {
@@ -43,11 +62,18 @@ export default function MenuPage() {
         // block inactive restaurants
         if (data.active === false) {
           setRestaurant(null);
+          setLoadedRestaurantId(restaurantId);
           setLoading(false);
           return;
         }
 
         setRestaurant(data);
+        setLoadedRestaurantId(restaurantId);
+      } else {
+        setRestaurant(null);
+        setLoadedRestaurantId(restaurantId);
+        setLoading(false);
+        return;
       }
 
       const catSnap = await getDocs(
@@ -66,6 +92,11 @@ export default function MenuPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function openDish(dish) {
+    setSelectedDish(dish);
+    void recordDishOpen(restaurantId, dish.id);
   }
 
   const filtered = dishes
@@ -178,7 +209,7 @@ export default function MenuPage() {
             {filtered.map((dish) => (
               <div
                 key={dish.id}
-                onClick={() => setSelectedDish(dish)}
+                onClick={() => openDish(dish)}
                 className="cursor-pointer h-full"
               >
                 <DishCard dish={dish} />

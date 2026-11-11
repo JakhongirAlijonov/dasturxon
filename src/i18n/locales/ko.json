@@ -19,6 +19,31 @@
     "dashboard": "관리자 패널",
     "dishes": "메뉴",
     "categories": "카테고리",
+    "statistics": "통계",
+    "stats": {
+      "title": "레스토랑 통계",
+      "description": "메뉴 조회와 QR 스캔을 확인하세요",
+      "today": "오늘",
+      "week": "7일",
+      "month": "30일",
+      "menuOpens": "메뉴 열기",
+      "qrOpens": "QR 스캔",
+      "qrWeek": "QR 스캔 · 7일",
+      "qrMonth": "QR 스캔 · 30일",
+      "tableScans": "테이블별 스캔 · 30일",
+      "dishStats": "메뉴 통계 · 30일",
+      "dailyActivity": "일별 QR 스캔 · 30일",
+      "date": "날짜",
+      "dish": "메뉴",
+      "views": "열기 · 30일",
+      "rating": "별점",
+      "reviews": "리뷰",
+      "scans": "스캔",
+      "noTableScans": "아직 테이블 QR 스캔이 없습니다",
+      "noDishViews": "아직 메뉴 조회가 없습니다",
+      "noActivity": "이 기간에 활동이 없습니다",
+      "loadError": "통계를 불러오지 못했습니다. Firestore 권한을 확인하세요."
+    },
     "logout": "로그아웃"
   }
 }

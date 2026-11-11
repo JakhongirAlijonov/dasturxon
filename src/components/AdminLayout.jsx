@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "react-i18next";
-import { UtensilsCrossed, Tag, LogOut, Menu, X, ChefHat } from "lucide-react";
+import {
+  UtensilsCrossed,
+  Tag,
+  BarChart3,
+  LogOut,
+  Menu,
+  X,
+  ChefHat,
+} from "lucide-react";
 
 export default function AdminLayout({ children, activePage, onNavigate }) {
   const { logout, user } = useAuth();
@@ -11,7 +19,9 @@ export default function AdminLayout({ children, activePage, onNavigate }) {
   const navItems = [
     { key: "dishes", label: t("admin.dishes"), icon: UtensilsCrossed },
     { key: "categories", label: t("admin.categories"), icon: Tag },
+    { key: "statistics", label: t("admin.statistics"), icon: BarChart3 },
   ];
+  const activeLabel = navItems.find((item) => item.key === activePage)?.label;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,9 +110,7 @@ export default function AdminLayout({ children, activePage, onNavigate }) {
               <Menu size={20} className="text-gray-600" />
             </button>
             <span className="font-semibold text-gray-800 text-sm capitalize">
-              {activePage === "dishes"
-                ? t("admin.dishes")
-                : t("admin.categories")}
+              {activeLabel}
             </span>
           </div>
           <div className="w-8 h-8 bg-yellow-400 rounded-lg flex items-center justify-center">

@@ -1,9 +1,133 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if false;
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "super_admin";
+    }
+
+    function isRestaurantAdmin(restaurantId) {
+      return isAuth() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "restaurant_admin" &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.restaurantId == restaurantId;
+    }
+
+    function canManageRestaurant(restaurantId) {
+      return isSuperAdmin() || isRestaurantAdmin(restaurantId);
+    }
+
+    match /restaurants/{restaurantId} {
+      allow read: if true;
+      allow create: if isSuperAdmin();
+      allow update: if canManageRestaurant(restaurantId);
+      allow delete: if isSuperAdmin();
+
+      match /categories/{catId} {
+        allow read: if true;
+        allow write: if canManageRestaurant(restaurantId);
+      }
+
+      match /dishes/{dishId} {
+        allow read: if true;
+        allow write: if canManageRestaurant(restaurantId);
+        allow update: if isAuth() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            "ratingAverage",
+            "ratingCount"
+          ]) &&
+          request.resource.data.ratingAverage is number &&
+          request.resource.data.ratingAverage >= 0 &&
+          request.resource.data.ratingAverage <= 5 &&
+          request.resource.data.ratingCount is int &&
+          request.resource.data.ratingCount == resource.data.get("ratingCount", 0) + 1;
+
+        match /reviews/{reviewId} {
+          allow read: if true;
+          allow create: if isAuth();
+          allow delete: if canManageRestaurant(restaurantId);
+          allow update: if false;
+        }
+      }
+
+      match /analyticsDaily/{dayId} {
+        function canReadStats() {
+          return canManageRestaurant(restaurantId);
+        }
+
+        function validCounters() {
+          return request.resource.data.keys().hasAll([
+              "date",
+              "menuOpens",
+              "qrOpens"
+            ]) &&
+            request.resource.data.keys().hasOnly([
+              "date",
+              "menuOpens",
+              "qrOpens"
+            ]) &&
+            request.resource.data.date == dayId &&
+            dayId.matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}$") &&
+            request.resource.data.menuOpens is int &&
+            request.resource.data.qrOpens is int;
+        }
+
+        function validCounterIncrement() {
+          let menuDelta = request.resource.data.menuOpens - resource.data.menuOpens;
+          let qrDelta = request.resource.data.qrOpens - resource.data.qrOpens;
+          return (menuDelta == 0 && qrDelta == 0) ||
+            (menuDelta == 1 && qrDelta in [0, 1]);
+        }
+
+        allow read: if canReadStats();
+        allow create: if isAuth() &&
+          validCounters() &&
+          request.resource.data.menuOpens in [0, 1] &&
+          request.resource.data.qrOpens in [0, 1] &&
+          (request.resource.data.menuOpens == 1 ||
+            request.resource.data.qrOpens == 0);
+        allow update: if isAuth() &&
+          validCounters() &&
+          request.resource.data.date == resource.data.date &&
+          validCounterIncrement();
+        allow delete: if canReadStats();
+
+        match /tables/{tableId} {
+          allow read: if canManageRestaurant(restaurantId);
+          allow create: if isAuth() &&
+            request.resource.data.keys().hasOnly(["tableNumber", "scans"]) &&
+            request.resource.data.tableNumber is string &&
+            request.resource.data.tableNumber.size() > 0 &&
+            request.resource.data.tableNumber.size() <= 40 &&
+            request.resource.data.scans == 1;
+          allow update: if isAuth() &&
+            request.resource.data.keys().hasOnly(["tableNumber", "scans"]) &&
+            request.resource.data.tableNumber == resource.data.tableNumber &&
+            request.resource.data.scans == resource.data.scans + 1;
+          allow delete: if canManageRestaurant(restaurantId);
+        }
+
+        match /dishes/{dishId} {
+          allow read: if canManageRestaurant(restaurantId);
+          allow create: if isAuth() &&
+            request.resource.data.keys().hasOnly(["views"]) &&
+            request.resource.data.views == 1;
+          allow update: if isAuth() &&
+            request.resource.data.keys().hasOnly(["views"]) &&
+            request.resource.data.views == resource.data.views + 1;
+          allow delete: if canManageRestaurant(restaurantId);
+        }
+      }
+    }
+
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow create: if isAuth();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
     }
   }
 }

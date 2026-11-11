@@ -3,7 +3,6 @@ import {
   collection,
   addDoc,
   getDocs,
-  deleteDoc,
   doc,
   query,
   orderBy,
@@ -164,18 +163,41 @@ export default function Reviews({ restaurantId, dishId }) {
 
   async function deleteReview(reviewId) {
     if (!confirm("Delete this review?")) return;
-    await deleteDoc(
-      doc(
-        db,
-        "restaurants",
-        restaurantId,
-        "dishes",
-        dishId,
-        "reviews",
-        reviewId,
-      ),
+    const reviewRef = doc(
+      db,
+      "restaurants",
+      restaurantId,
+      "dishes",
+      dishId,
+      "reviews",
+      reviewId,
     );
+    const dishRef = doc(db, "restaurants", restaurantId, "dishes", dishId);
+
+    await runTransaction(db, async (transaction) => {
+      const [reviewSnap, dishSnap] = await Promise.all([
+        transaction.get(reviewRef),
+        transaction.get(dishRef),
+      ]);
+      if (!reviewSnap.exists()) return;
+
+      transaction.delete(reviewRef);
+      if (!dishSnap.exists()) return;
+
+      const dish = dishSnap.data();
+      const oldCount = dish.ratingCount || 0;
+      const newCount = Math.max(0, oldCount - 1);
+      const newAverage = newCount
+        ? ((dish.ratingAverage || 0) * oldCount - reviewSnap.data().rating) /
+          newCount
+        : 0;
+      transaction.update(dishRef, {
+        ratingCount: newCount,
+        ratingAverage: Math.round(newAverage * 10) / 10,
+      });
+    });
     fetchReviews(true);
+    fetchStats();
   }
 
   return (

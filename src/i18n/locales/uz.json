@@ -19,6 +19,31 @@
     "dashboard": "Boshqaruv paneli",
     "dishes": "Taomlar",
     "categories": "Kategoriyalar",
+    "statistics": "Statistika",
+    "stats": {
+      "title": "Restoran statistikasi",
+      "description": "Ko‘rishlar va QR kod skanlarini kuzating",
+      "today": "Bugun",
+      "week": "7 kun",
+      "month": "30 kun",
+      "menuOpens": "Menyu ochilishi",
+      "qrOpens": "QR skanlari",
+      "qrWeek": "QR skanlari · 7 kun",
+      "qrMonth": "QR skanlari · 30 kun",
+      "tableScans": "Stollar bo‘yicha skanlar · 30 kun",
+      "dishStats": "Taomlar statistikasi · 30 kun",
+      "dailyActivity": "Kunlik QR skanlari · 30 kun",
+      "date": "Sana",
+      "dish": "Taom",
+      "views": "Ochilgan · 30 kun",
+      "rating": "Yulduzlar",
+      "reviews": "Sharhlar",
+      "scans": "Skanlar",
+      "noTableScans": "Hozircha stol QR skanlari yo‘q",
+      "noDishViews": "Hozircha taom ko‘rishlari yo‘q",
+      "noActivity": "Bu davrda faollik yo‘q",
+      "loadError": "Statistikani yuklab bo‘lmadi. Firestore ruxsatlarini tekshiring."
+    },
     "logout": "Chiqish"
   }
 }

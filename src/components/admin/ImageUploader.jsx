@@ -2,7 +2,7 @@ import { useRef } from "react";
 import { useImageUpload } from "../../hooks/useImageUpload";
 import { ImagePlus, X } from "lucide-react";
 
-export default function ImageUploader({ value, onChange, restaurantId }) {
+export default function ImageUploader({ value, onChange }) {
   const { uploadImage, uploading, progress } = useImageUpload();
   const inputRef = useRef();
 
@@ -23,11 +23,11 @@ export default function ImageUploader({ value, onChange, restaurantId }) {
     }
 
     try {
-      const url = await uploadImage(file, restaurantId);
+      const url = await uploadImage(file);
       onChange(url);
     } catch (err) {
       console.error(err);
-      alert("Upload failed. Please try again.");
+      alert(`Upload failed: ${err.message || "Please try again."}`);
     }
   }
 

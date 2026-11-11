@@ -4,10 +4,12 @@ import {
   getDocs,
   addDoc,
   updateDoc,
+  deleteDoc,
   doc,
+  writeBatch,
 } from "firebase/firestore";
 import { db } from "../../firebase/config";
-import { Plus, ToggleLeft, ToggleRight, Copy } from "lucide-react";
+import { Plus, ToggleLeft, ToggleRight, Copy, Trash2 } from "lucide-react";
 import { QrCode } from "lucide-react";
 import QRModal from "./QRModal";
 
@@ -16,6 +18,7 @@ export default function RestaurantsManager() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingRestaurantId, setDeletingRestaurantId] = useState(null);
   const [copied, setCopied] = useState(null);
   const [qrRestaurant, setQrRestaurant] = useState(null);
   const [form, setForm] = useState({
@@ -74,6 +77,82 @@ export default function RestaurantsManager() {
       active: !restaurant.active,
     });
     fetchRestaurants();
+  }
+
+  async function deleteRestaurant(restaurant) {
+    const confirmed = window.confirm(
+      `Delete ${restaurant.name}? This also removes its categories, dishes, reviews, and admin profile documents. Firebase Auth accounts and Cloudinary images are not deleted. This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingRestaurantId(restaurant.id);
+    try {
+      const [categorySnap, dishSnap, userSnap, analyticsSnap] = await Promise.all([
+        getDocs(collection(db, "restaurants", restaurant.id, "categories")),
+        getDocs(collection(db, "restaurants", restaurant.id, "dishes")),
+        getDocs(collection(db, "users")),
+        getDocs(collection(db, "restaurants", restaurant.id, "analyticsDaily")),
+      ]);
+
+      const [reviewSnaps, analyticsChildren] = await Promise.all([
+        Promise.all(
+          dishSnap.docs.map((dish) =>
+            getDocs(
+              collection(
+                db,
+                "restaurants",
+                restaurant.id,
+                "dishes",
+                dish.id,
+                "reviews",
+              ),
+            ),
+          ),
+        ),
+        Promise.all(
+          analyticsSnap.docs.map(async (day) => {
+            const [tables, dishes] = await Promise.all([
+              getDocs(collection(day.ref, "tables")),
+              getDocs(collection(day.ref, "dishes")),
+            ]);
+            return { day: day.ref, children: [...tables.docs, ...dishes.docs] };
+          }),
+        ),
+      ]);
+      const relatedAdminDocs = userSnap.docs.filter(
+        (user) =>
+          user.data().role === "restaurant_admin" &&
+          user.data().restaurantId === restaurant.id,
+      );
+
+      const refsToDelete = [
+        ...reviewSnaps.flatMap((snap) => snap.docs.map((review) => review.ref)),
+        ...dishSnap.docs.map((dish) => dish.ref),
+        ...categorySnap.docs.map((category) => category.ref),
+        ...relatedAdminDocs.map((user) => user.ref),
+        ...analyticsChildren.flatMap((day) => day.children.map((child) => child.ref)),
+        ...analyticsSnap.docs.map((day) => day.ref),
+      ];
+
+      // Firestore batches support up to 500 writes. Keep each batch below that.
+      for (let i = 0; i < refsToDelete.length; i += 450) {
+        const batch = writeBatch(db);
+        refsToDelete.slice(i, i + 450).forEach((ref) => batch.delete(ref));
+        await batch.commit();
+      }
+
+      await deleteDoc(doc(db, "restaurants", restaurant.id));
+      setRestaurants((current) =>
+        current.filter((item) => item.id !== restaurant.id),
+      );
+    } catch (error) {
+      console.error("Failed to delete restaurant:", error);
+      window.alert(
+        "Could not delete this restaurant. Check your Firestore permissions and try again.",
+      );
+    } finally {
+      setDeletingRestaurantId(null);
+    }
   }
 
   function copyId(id) {
@@ -183,7 +262,7 @@ export default function RestaurantsManager() {
             {restaurants.map((r) => (
               <div
                 key={r.id}
-                className="p-5 flex items-center justify-between gap-4"
+                className="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
               >
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-800">{r.name}</p>
@@ -226,7 +305,7 @@ export default function RestaurantsManager() {
                 </div>
 
                 {/* Active toggle */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:flex-shrink-0">
                   <button
                     onClick={() => setQrRestaurant(r)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition"
@@ -253,6 +332,17 @@ export default function RestaurantsManager() {
                         <ToggleLeft size={16} /> Inactive
                       </>
                     )}
+                  </button>
+                  <button
+                    onClick={() => deleteRestaurant(r)}
+                    disabled={deletingRestaurantId === r.id}
+                    title="Delete restaurant and its Firestore menu data"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition disabled:opacity-50"
+                  >
+                    <Trash2 size={16} />
+                    {deletingRestaurantId === r.id
+                      ? "Deleting..."
+                      : "Delete Restaurant"}
                   </button>
                 </div>
               </div>

@@ -6,10 +6,12 @@ export default function QRModal({ restaurant, onClose }) {
   const qrRef = useRef();
   const [tableNumber, setTableNumber] = useState("");
 
-  const menuUrl = `${window.location.origin}/menu/${restaurant.id}`;
-  const tableUrl = tableNumber
-    ? `${window.location.origin}/menu/${restaurant.id}?table=${tableNumber}`
-    : menuUrl;
+  const tableUrl = new URL(
+    `/menu/${restaurant.id}`,
+    window.location.origin,
+  );
+  tableUrl.searchParams.set("source", "qr");
+  if (tableNumber) tableUrl.searchParams.set("table", tableNumber);
 
   function generateCanvas(callback) {
     const W = 420;
@@ -205,7 +207,7 @@ export default function QRModal({ restaurant, onClose }) {
             {/* QR */}
             <div ref={qrRef} className="bg-white p-3 rounded-xl">
               <QRCodeSVG
-                value={tableUrl}
+                value={tableUrl.toString()}
                 size={180}
                 bgColor="#ffffff"
                 fgColor="#0F2236"
