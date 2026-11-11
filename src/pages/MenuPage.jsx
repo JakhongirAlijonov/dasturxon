@@ -12,10 +12,10 @@ import {
 import { db } from "../firebase/config";
 import { recordDishOpen, recordMenuOpen } from "../firebase/analytics";
 import { useTranslation } from "react-i18next";
-import DishCard from "../components/DishCard";
+import DishCard from "../components/Dishcard";
 import CategoryFilter from "../components/CategoryFilter";
 import LanguageSwitcher from "../components/LanguageSwitcher";
-import UzbekPattern from "../components/Uzbekpattern";
+import UzbekPattern from "../components/UzbekPattern";
 import { Search } from "lucide-react";
 
 export default function MenuPage() {
